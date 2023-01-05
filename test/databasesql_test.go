@@ -10,7 +10,7 @@ import (
 
 func TestSQL(t *testing.T) {
 	// 连接
-	db, _ := sql.Open("sqlite3", "gee.db")
+	db, _ := sql.Open("sqlite3", "test.db")
 	defer func() { db.Close() }()
 
 	// 对表操作

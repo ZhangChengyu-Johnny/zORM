@@ -3,18 +3,23 @@ package session
 import (
 	"database/sql"
 	"strings"
+	"zORM/dialect"
 	"zORM/log"
+	"zORM/schema"
 )
 
 type Session struct {
-	db      *sql.DB         // database中sql.Open()返回的句柄
-	sql     strings.Builder // 用户传入的带占位符的SQL语句
-	sqlVars []interface{}   // SQL语句中对应的值
+	db       *sql.DB         // database中sql.Open()返回的句柄
+	dialect  dialect.Dialect // SQL解释器
+	refTable *schema.Schema  // 通过dialect解析出来的数据库中的表
+	sql      strings.Builder // 用户传入的带占位符的SQL语句
+	sqlVars  []interface{}   // SQL语句中对应的值
 }
 
-func New(db *sql.DB) *Session {
+func New(db *sql.DB, dialect dialect.Dialect) *Session {
 	return &Session{
-		db: db,
+		db:      db,
+		dialect: dialect,
 	}
 }
 
