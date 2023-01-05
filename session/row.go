@@ -3,6 +3,7 @@ package session
 import (
 	"database/sql"
 	"strings"
+	"zORM/clause"
 	"zORM/dialect"
 	"zORM/log"
 	"zORM/schema"
@@ -14,6 +15,7 @@ type Session struct {
 	refTable *schema.Schema  // 通过dialect解析出来的数据库中的表
 	sql      strings.Builder // 用户传入的带占位符的SQL语句
 	sqlVars  []interface{}   // SQL语句中对应的值
+	caluse   clause.Clause   // 分句
 }
 
 func New(db *sql.DB, dialect dialect.Dialect) *Session {
@@ -24,8 +26,9 @@ func New(db *sql.DB, dialect dialect.Dialect) *Session {
 }
 
 func (s *Session) Clear() {
-	s.sql.Reset()
-	s.sqlVars = nil
+	s.sql.Reset()              // 清空SQL
+	s.sqlVars = nil            // 清空SQL参数列表
+	s.caluse = clause.Clause{} // 清空分句
 }
 
 func (s *Session) DB() *sql.DB {

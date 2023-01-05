@@ -6,7 +6,7 @@ import (
 	"zORM"
 )
 
-func TestD1(t *testing.T) {
+func TestEngine(t *testing.T) {
 	engine, _ := zORM.NewEngine("sqlite3", "gee.db")
 	defer engine.Close()
 	session := engine.NewSession()
