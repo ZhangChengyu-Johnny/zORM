@@ -56,3 +56,13 @@ func Parse(obj interface{}, translator dialect.Dialect) *Schema {
 	}
 	return schema
 }
+
+/* 在Insert前需要做一个字段转换，根据数据库中列的顺序，从对象里找到对应的值 */
+func (schema *Schema) RecordValues(obj interface{}) []interface{} {
+	destValue := reflect.Indirect(reflect.ValueOf(obj))
+	var fieldValues []interface{}
+	for _, field := range schema.Fields {
+		fieldValues = append(fieldValues, destValue.FieldByName(field.Name).Interface())
+	}
+	return fieldValues
+}

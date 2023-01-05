@@ -26,7 +26,7 @@ func (c *Clause) Set(name Type, vars ...interface{}) {
 		c.sql = make(map[Type]string)
 		c.sqlVars = make(map[Type][]interface{})
 	}
-
+	// 根据传入操作Type和参数，调用对应方法构造分句和参数列表
 	sql, vars := generators[name](vars...)
 	c.sql[name] = sql
 	c.sqlVars[name] = vars
