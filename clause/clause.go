@@ -33,10 +33,10 @@ func (c *Clause) Set(name Type, vars ...interface{}) {
 }
 
 /* 根据分句顺序，组织出最终SQL语句和参数列表 */
-func (c *Clause) Build(orders ...Type) (string, []interface{}) {
+func (c *Clause) Build(typeOrders ...Type) (string, []interface{}) {
 	var sqls []string
 	var vars []interface{}
-	for _, order := range orders {
+	for _, order := range typeOrders {
 		if sql, ok := c.sql[order]; ok {
 			sqls = append(sqls, sql)
 			vars = append(vars, c.sqlVars[order]...)

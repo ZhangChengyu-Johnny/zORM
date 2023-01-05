@@ -6,15 +6,17 @@ import (
 )
 
 func (s *Session) Insert(values ...interface{}) (int64, error) {
+	// values: &user1{"Tim", 18}, &user2{"Tom", 25}...
 	recordValues := make([]interface{}, 0)
 	for _, value := range values {
 		table := s.Model(value).RefTable()
 		// 构造子句
 		s.clause.Set(clause.INSERT, table.Name, table.FieldNames)
+		// table.RecordValues(&user1{"Time", 18}) = [Tom, 18]
 		recordValues = append(recordValues, table.RecordValues(value))
 	}
-
 	// 用构造好的子句构造最终SQL语句
+	// recordValues = [[Tom, 18], [Sam, 25]]
 	s.clause.Set(clause.VALUES, recordValues...)
 	sql, vars := s.clause.Build(clause.INSERT, clause.VALUES)
 	// 执行SQL语句，返回结果
@@ -28,8 +30,6 @@ func (s *Session) Insert(values ...interface{}) (int64, error) {
 func (s *Session) Find(obj interface{}) error {
 	objValue := reflect.Indirect(reflect.ValueOf(obj))
 	objType := objValue.Type().Elem()
-	// 1. 根据obj找到obj原结构体，构造出一个空的对象
-	// 2. 传入Model方法解析出本次查找的数据库表
 	table := s.Model(reflect.New(objType).Elem().Interface()).RefTable()
 	// 构造SELECT的SQL语句
 	s.clause.Set(clause.SELECT, table.Name, table.FieldNames)
@@ -55,6 +55,5 @@ func (s *Session) Find(obj interface{}) error {
 		}
 		objValue.Set(reflect.Append(objValue, dest))
 	}
-
 	return rows.Close()
 }
