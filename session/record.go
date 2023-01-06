@@ -1,6 +1,7 @@
 package session
 
 import (
+	"errors"
 	"reflect"
 	"zORM/clause"
 )
@@ -56,4 +57,80 @@ func (s *Session) Find(obj interface{}) error {
 		objValue.Set(reflect.Append(objValue, dest))
 	}
 	return rows.Close()
+}
+
+func (s *Session) Update(kv ...interface{}) (int64, error) {
+	// 参数可以接收一个字典{字段1:值1, 字段2:值2}，
+	// 也可以接收一个列表[字段1，值1，字段2，值2]
+	m, ok := kv[0].(map[string]interface{})
+	if !ok {
+		m = make(map[string]interface{})
+		for i := 0; i < len(kv); i += 2 {
+			m[kv[i].(string)] = kv[i+1]
+		}
+	}
+	// 构造SQL语句
+	s.clause.Set(clause.UPDATE, s.RefTable().Name, m)
+	sql, vars := s.clause.Build(clause.UPDATE, clause.WHERE)
+	// 执行并返回结果
+	result, err := s.Raw(sql, vars...).Exec()
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+func (s *Session) Delete() (int64, error) {
+	// 构造SQL语句
+	s.clause.Set(clause.DELETE, s.RefTable().Name)
+	sql, vars := s.clause.Build(clause.DELETE, clause.WHERE)
+	result, err := s.Raw(sql, vars...).Exec()
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+func (s *Session) Count() (int64, error) {
+	s.clause.Set(clause.COUNT, s.RefTable().Name)
+	sql, vars := s.clause.Build(clause.COUNT, clause.WHERE)
+	row := s.Raw(sql, vars...).QueryRow()
+	var tmp int64
+	if err := row.Scan(&tmp); err != nil {
+		return 0, err
+	}
+	return tmp, nil
+}
+
+func (s *Session) Limit(num int) *Session {
+	s.clause.Set(clause.LIMIT, num)
+	return s
+}
+
+func (s *Session) Where(desc string, args ...interface{}) *Session {
+	// desc: "name = ?", args: "Tom"
+	var vars []interface{}
+	vars = append(vars, desc)
+	vars = append(vars, args...)
+	// vars: ["name = ?", "Tom"]
+	s.clause.Set(clause.WHERE, vars...)
+	return s
+}
+
+func (s *Session) OrderBy(desc string) *Session {
+	s.clause.Set(clause.ORDERBY, desc)
+	return s
+}
+
+func (s *Session) First(value interface{}) error {
+	dest := reflect.Indirect(reflect.ValueOf(value))
+	destSlice := reflect.New(reflect.SliceOf(dest.Type())).Elem()
+	if err := s.Limit(1).Find(destSlice.Addr().Interface()); err != nil {
+		return err
+	}
+	if destSlice.Len() == 0 {
+		return errors.New("NOT FOUND")
+	}
+	dest.Set(destSlice.Index(0))
+	return nil
 }

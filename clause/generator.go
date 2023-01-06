@@ -17,6 +17,9 @@ func init() {
 	generators[LIMIT] = _limit
 	generators[WHERE] = _where
 	generators[ORDERBY] = _orderBy
+	generators[UPDATE] = _update
+	generators[DELETE] = _delete
+	generators[COUNT] = _count
 }
 
 func genBindVars(num int) string {
@@ -76,4 +79,28 @@ func _where(values ...interface{}) (string, []interface{}) {
 func _orderBy(values ...interface{}) (string, []interface{}) {
 	// return: "ORDER BY 字段", 空列表
 	return fmt.Sprintf("ORDER BY %s", values[0]), []interface{}{}
+}
+
+func _update(values ...interface{}) (string, []interface{}) {
+	// return: "UPDATE 表名 SET 字段1 = ?, 字段2 = ?", 参数列表
+	tableName := values[0]
+	m := values[1].(map[string]interface{})
+	var keys []string
+	var vars []interface{}
+	for k, v := range m {
+		keys = append(keys, fmt.Sprintf("%v = ?", k))
+		vars = append(vars, v)
+	}
+	return fmt.Sprintf("UPDATE %s SET %s", tableName, strings.Join(keys, ", ")), vars
+}
+
+func _delete(values ...interface{}) (string, []interface{}) {
+	// return: "DELETE FROM 表名"
+	return fmt.Sprintf("DELETE FROM %s", values[0]), []interface{}{}
+}
+
+func _count(values ...interface{}) (string, []interface{}) {
+	// return: SELECT COUNT(*) FROM 表名
+	tableName := values[0]
+	return _select(tableName, []string{"COUNT(*)"})
 }

@@ -18,18 +18,15 @@ func NewEngine(driver, source string) (e *Engine, err error) {
 		log.Error(err)
 		return
 	}
-
 	// ping一下测试
 	if err = db.Ping(); err != nil {
 		log.Error(err)
 		return
 	}
-
 	dial, ok := dialect.GetDialect(driver)
 	if !ok {
 		log.Errorf("dialect %s Not Found", driver)
 	}
-
 	e = &Engine{
 		db:      db,
 		dialect: dial,

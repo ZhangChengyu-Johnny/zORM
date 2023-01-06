@@ -28,10 +28,11 @@ func (schema *Schema) GetField(name string) *Field {
 
 /* 把任何Go对象解析成Schema */
 func Parse(obj interface{}, translator dialect.Dialect) *Schema {
+	// 获取obj对象原结构体
 	modelType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 	schema := &Schema{
 		Model:    obj,
-		Name:     modelType.Name(), // 结构体名
+		Name:     modelType.Name(), // obj原结构体名
 		fieldMap: make(map[string]*Field),
 	}
 

@@ -35,7 +35,7 @@ func (s *Session) DB() *sql.DB {
 	return s.db
 }
 
-// 编译SQL语句
+/* 传入SQL语句和参数，写入Session */
 func (s *Session) Raw(sql string, values ...interface{}) *Session {
 	s.sql.WriteString(sql)
 	s.sql.WriteString(" ")
@@ -43,13 +43,13 @@ func (s *Session) Raw(sql string, values ...interface{}) *Session {
 	return s
 }
 
-// 执行方法
+/* 执行Session中的SQL语句 */
 func (s *Session) Exec() (result sql.Result, err error) {
 	// 每次执行完清空Session的变量，使Session可以复用，开启一次会话执行多次SQL
 	defer s.Clear()
 	// 打印[info ]等级日志
 	log.Info(s.sql.String(), s.sqlVars)
-	// 将用户编译的SQL语句交给dabase/sql的db.Exec()去具体执行
+	// 将用户编译好存在Session里的SQL语句交给dabase/sql包去具体执行
 	if result, err = s.DB().Exec(s.sql.String(), s.sqlVars...); err != nil {
 		// 如果执行出错打印[error]等级日志
 		log.Error(err)
@@ -57,20 +57,19 @@ func (s *Session) Exec() (result sql.Result, err error) {
 	return
 }
 
-// 查询单条数据
+/* 查询单条数据 */
 func (s *Session) QueryRow() *sql.Row {
 	defer s.Clear()
 	log.Info(s.sql.String(), s.sqlVars)
-	// 将用户编译的SQL语句交给dabase/sql的db.QueryRow()去具体执行
+	// 将用户编译的SQL语句交给dabase/sql包的QueryRow()去具体执行
 	return s.DB().QueryRow(s.sql.String(), s.sqlVars...)
 }
 
-// 查询多条数据
+/* 查询多条数据 */
 func (s *Session) QueryRows() (rows *sql.Rows, err error) {
 	defer s.Clear()
 	log.Info(s.sql.String(), s.sqlVars)
-
-	// 将用户编译的SQL语句交给dabase/sql的db.Query()去具体执行
+	// 将用户编译的SQL语句交给dabase/sql包的Query()去具体执行
 	if rows, err = s.DB().Query(s.sql.String(), s.sqlVars...); err != nil {
 		log.Error(err)
 	}

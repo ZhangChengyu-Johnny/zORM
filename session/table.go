@@ -25,12 +25,12 @@ func (s *Session) RefTable() *schema.Schema {
 	return s.refTable
 }
 
-/* 创建表 */
+/* 利用Session中保存的表信息创建表，之前必须调用过Session.Model(&obj{}) */
 func (s *Session) CreateTable() error {
 	table := s.RefTable()
 	var columns []string
 	for _, field := range table.Fields {
-		columns = append(columns, fmt.Sprintf("%s %s %s", field.Name, field.Tag, field.Tag))
+		columns = append(columns, fmt.Sprintf("%s %s %s", field.Name, field.Type, field.Tag))
 	}
 	desc := strings.Join(columns, ",")
 	// 示例: CREATE TABLE User (Name PRIMIADY KEY PRIMIADY KEY,Age  );
@@ -39,7 +39,7 @@ func (s *Session) CreateTable() error {
 	return err
 }
 
-/* 删除表 */
+/* 利用Session中保存的表信息删除表，之前必须调用过Session.Model(&obj{}) */
 func (s *Session) DropTable() error {
 	_, err := s.Raw(fmt.Sprintf("DROP TABLE IF EXISTS %s", s.RefTable().Name)).Exec()
 	return err

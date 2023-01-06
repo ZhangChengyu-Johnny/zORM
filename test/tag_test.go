@@ -13,7 +13,7 @@ type TestStruct struct {
 
 func TestTag(t *testing.T) {
 	modelType := reflect.Indirect(reflect.ValueOf(&TestStruct{})).Type()
-
+	fmt.Println(modelType)
 	for i := 0; i < modelType.NumField(); i++ {
 		p := modelType.Field(i)
 		tag, ok := p.Tag.Lookup("zorm")

@@ -43,8 +43,37 @@ func TestFind(t *testing.T) {
 		t.Fatal("failed to query all")
 	}
 
-	for i, u := range users {
-		fmt.Println(i, u)
+	for _, u := range users {
+		fmt.Println(u)
 	}
 
+}
+
+func TestLimit(t *testing.T) {
+	s := testInit()
+	var users []User
+	err := s.Limit(1).Find(&users)
+	if err != nil {
+		fmt.Println(".Limit(1).Find() error:", err)
+	} else {
+		fmt.Println("Limit restult:", users)
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	s := testInit()
+	affected, _ := s.Where("Name = ?", "Tom").Update("Age", 30)
+
+	u := &User{}
+	s.OrderBy("Age DESC").First(u)
+	fmt.Println(affected, u)
+}
+
+func TestDeleteAndCount(t *testing.T) {
+	s := testInit()
+	count, _ := s.Count()
+	fmt.Println(count == 2)
+	s.Where("Name = ?", "Tom").Delete()
+	count, _ = s.Count()
+	fmt.Println(count == 1)
 }
