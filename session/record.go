@@ -7,6 +7,10 @@ import (
 )
 
 func (s *Session) Insert(values ...interface{}) (int64, error) {
+	// 插入前调用钩子
+	for _, v := range values {
+		s.CallMethod(BeforeInsert, v)
+	}
 	// values: &user1{"Tim", 18}, &user2{"Tom", 25}...
 	recordValues := make([]interface{}, 0)
 	for _, value := range values {
@@ -22,6 +26,10 @@ func (s *Session) Insert(values ...interface{}) (int64, error) {
 	sql, vars := s.clause.Build(clause.INSERT, clause.VALUES)
 	// 执行SQL语句，返回结果
 	result, err := s.Raw(sql, vars...).Exec()
+	// 插入后调用钩子
+	for _, v := range values {
+		s.CallMethod(AfterInsert, v)
+	}
 	if err != nil {
 		return 0, err
 	}
@@ -29,6 +37,8 @@ func (s *Session) Insert(values ...interface{}) (int64, error) {
 }
 
 func (s *Session) Find(obj interface{}) error {
+	// 查询前调用钩子
+	s.CallMethod(BeforeQuery, nil)
 	objValue := reflect.Indirect(reflect.ValueOf(obj))
 	objType := objValue.Type().Elem()
 	table := s.Model(reflect.New(objType).Elem().Interface()).RefTable()
@@ -54,12 +64,16 @@ func (s *Session) Find(obj interface{}) error {
 		if err := rows.Scan(values...); err != nil {
 			return err
 		}
+		// 查询后调用钩子，操作每一行
+		s.CallMethod(AfterQuery, dest.Addr().Interface())
 		objValue.Set(reflect.Append(objValue, dest))
 	}
 	return rows.Close()
 }
 
 func (s *Session) Update(kv ...interface{}) (int64, error) {
+	// 更新前调用钩子
+	s.CallMethod(BeforeUpdate, nil)
 	// 参数可以接收一个字典{字段1:值1, 字段2:值2}，
 	// 也可以接收一个列表[字段1，值1，字段2，值2]
 	m, ok := kv[0].(map[string]interface{})
@@ -74,6 +88,8 @@ func (s *Session) Update(kv ...interface{}) (int64, error) {
 	sql, vars := s.clause.Build(clause.UPDATE, clause.WHERE)
 	// 执行并返回结果
 	result, err := s.Raw(sql, vars...).Exec()
+	// 更新后调用钩子
+	s.CallMethod(AfterUpdate, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -81,10 +97,14 @@ func (s *Session) Update(kv ...interface{}) (int64, error) {
 }
 
 func (s *Session) Delete() (int64, error) {
+	// 删除前调用钩子
+	s.CallMethod(BeforeDelete, nil)
 	// 构造SQL语句
 	s.clause.Set(clause.DELETE, s.RefTable().Name)
 	sql, vars := s.clause.Build(clause.DELETE, clause.WHERE)
 	result, err := s.Raw(sql, vars...).Exec()
+	// 删除后调用钩子
+	s.CallMethod(AfterDelete, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -123,6 +143,7 @@ func (s *Session) OrderBy(desc string) *Session {
 }
 
 func (s *Session) First(value interface{}) error {
+	// 查询前调用钩子
 	dest := reflect.Indirect(reflect.ValueOf(value))
 	destSlice := reflect.New(reflect.SliceOf(dest.Type())).Elem()
 	if err := s.Limit(1).Find(destSlice.Addr().Interface()); err != nil {

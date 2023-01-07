@@ -9,8 +9,19 @@ import (
 	"zORM/schema"
 )
 
+/* 把tx和db封装成一个接口便于将判断方法抽出来 */
+type CommonDB interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+var _ CommonDB = (*sql.DB)(nil)
+var _ CommonDB = (*sql.Tx)(nil)
+
 type Session struct {
 	db       *sql.DB         // database中sql.Open()返回的句柄
+	tx       *sql.Tx         // database中执行事务的句柄
 	dialect  dialect.Dialect // SQL解释器
 	refTable *schema.Schema  // 通过dialect解析出来的数据库中的表
 	sql      strings.Builder // 用户传入的带占位符的SQL语句
@@ -31,8 +42,12 @@ func (s *Session) Clear() {
 	s.clause = clause.Clause{} // 清空分句
 }
 
-func (s *Session) DB() *sql.DB {
-	return s.db
+func (s *Session) DB() CommonDB {
+	if s.tx != nil {
+		return s.tx
+	} else {
+		return s.db
+	}
 }
 
 /* 传入SQL语句和参数，写入Session */
