@@ -1,3 +1,27 @@
+/*
+封装了Session的基础方法
+
+New方法:
+新建一个Session
+
+Clear方法:
+清除Session中保存的SQL语句
+
+DB方法:
+返回事务句柄或DB句柄
+
+RAW方法:
+将SQL语句和对应的参数保存进Session
+
+Exec方法:
+封装了database/sql的具体执行
+
+QueryRow方法：
+封装了database/sql的单条查询
+
+QueryRows方法:
+封装了database/sql的多条查询
+*/
 package session
 
 import (
@@ -50,7 +74,7 @@ func (s *Session) DB() CommonDB {
 	}
 }
 
-/* 传入SQL语句和参数，写入Session */
+/* 传入SQL语句和参数，写入Session保存起来 */
 func (s *Session) Raw(sql string, values ...interface{}) *Session {
 	s.sql.WriteString(sql)
 	s.sql.WriteString(" ")

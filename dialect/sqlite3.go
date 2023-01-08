@@ -1,3 +1,6 @@
+/*
+通过反射的包的reflect.ValueOf().Kind()方法获取对象具体值的系统基础类型，再映射成数据库类型
+*/
 package dialect
 
 import (
@@ -17,6 +20,7 @@ func init() {
 
 /* Go类型转SQL类型的方法 */
 func (s *sqlite3) DataTypeOf(typ reflect.Value) string {
+	// (reflect.Value).Kind() 和 (reflect.Type).Kind() 相同
 	switch typ.Kind() {
 	case reflect.Bool:
 		return "bool"

@@ -1,3 +1,13 @@
+/*
+将一个数据库的表抽象成Schema对象，将表中的列抽象成Field对象
+
+GetField方法:
+获取表中的列(Schema里的Field)
+
+Parse方法:
+根据一个Go的实例化对象(指针类型、非指针类型都可)，获取他的类型
+*/
+
 package schema
 
 import (
@@ -28,7 +38,6 @@ func (schema *Schema) GetField(name string) *Field {
 
 /* 把任何Go对象解析成Schema */
 func Parse(obj interface{}, translator dialect.Dialect) *Schema {
-	// 获取obj对象原结构体
 	modelType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 	schema := &Schema{
 		Model:    obj,
@@ -37,17 +46,15 @@ func Parse(obj interface{}, translator dialect.Dialect) *Schema {
 	}
 
 	for i := 0; i < modelType.NumField(); i++ {
-		// 遍历对象所属结构体中的所有字段
 		p := modelType.Field(i)
 		if !p.Anonymous && ast.IsExported(p.Name) {
-			// 验证字段是否公有并且在抽象语法树中，
-			// 将结构体中的字段转换成列
+			// 验证字段是否公有
 			field := &Field{
 				Name: p.Name,
 				Type: translator.DataTypeOf(reflect.Indirect(reflect.New(p.Type))),
 			}
 			if v, ok := p.Tag.Lookup("zorm"); ok {
-				// zorm:"column:field;type:string", Lookup会提取v = column:field;type:string
+				// zorm:"PRIMIARY KEY", Lookup会提取 v = "PRIMIARY KEY"
 				field.Tag = v
 			}
 			schema.Fields = append(schema.Fields, field)

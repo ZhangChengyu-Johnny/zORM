@@ -1,3 +1,12 @@
+/*
+终结方法: Insert、Find、Update、Delate、Count、First
+在终结方法中会直接执行SQL语句并在执行后清空Session中保留的SQL语句相关内容
+
+链式方法: Where、Limit、OrderBy
+链式方法不会执行SQL语句，将子句保存到Session后返回Session对象
+
+在Insert、Find、Upadate、Delete中会自动找操作对象中的钩子函数执行
+*/
 package session
 
 import (
@@ -71,6 +80,19 @@ func (s *Session) Find(obj interface{}) error {
 	return rows.Close()
 }
 
+func (s *Session) First(value interface{}) error {
+	dest := reflect.Indirect(reflect.ValueOf(value))
+	destSlice := reflect.New(reflect.SliceOf(dest.Type())).Elem()
+	if err := s.Limit(1).Find(destSlice.Addr().Interface()); err != nil {
+		return err
+	}
+	if destSlice.Len() == 0 {
+		return errors.New("NOT FOUND")
+	}
+	dest.Set(destSlice.Index(0))
+	return nil
+}
+
 func (s *Session) Update(kv ...interface{}) (int64, error) {
 	// 更新前调用钩子
 	s.CallMethod(BeforeUpdate, nil)
@@ -140,18 +162,4 @@ func (s *Session) Where(desc string, args ...interface{}) *Session {
 func (s *Session) OrderBy(desc string) *Session {
 	s.clause.Set(clause.ORDERBY, desc)
 	return s
-}
-
-func (s *Session) First(value interface{}) error {
-	// 查询前调用钩子
-	dest := reflect.Indirect(reflect.ValueOf(value))
-	destSlice := reflect.New(reflect.SliceOf(dest.Type())).Elem()
-	if err := s.Limit(1).Find(destSlice.Addr().Interface()); err != nil {
-		return err
-	}
-	if destSlice.Len() == 0 {
-		return errors.New("NOT FOUND")
-	}
-	dest.Set(destSlice.Index(0))
-	return nil
 }

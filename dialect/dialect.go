@@ -1,3 +1,10 @@
+/*
+RegisterDialect方法:
+不同数据库在完成自己的实例后通过该方法把数据库解释器注册到全局中
+
+GetDialect方法:
+根据数据库名获取对应的数据库解释器
+*/
 package dialect
 
 import "reflect"

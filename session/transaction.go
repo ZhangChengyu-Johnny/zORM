@@ -1,3 +1,7 @@
+/*
+把database/sql中三个事务的基础方法封装到Session中
+*/
+
 package session
 
 import "zORM/log"

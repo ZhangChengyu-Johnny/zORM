@@ -1,3 +1,7 @@
+/*
+封装了表的基础操作
+*/
+
 package session
 
 import (

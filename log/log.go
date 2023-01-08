@@ -1,3 +1,4 @@
+/* 带颜色的日志包 */
 package log
 
 import (

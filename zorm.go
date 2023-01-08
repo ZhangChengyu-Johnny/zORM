@@ -1,3 +1,7 @@
+/*
+引擎，用来连接数据库，新建Session，开启事务、数据库迁移等
+*/
+
 package zORM
 
 import (

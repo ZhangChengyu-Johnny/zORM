@@ -1,3 +1,6 @@
+/*
+具体构造分句的方法实现
+*/
 package clause
 
 import (
